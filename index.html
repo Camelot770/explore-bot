@@ -108,6 +108,9 @@ body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:v
 .pair-status{margin-top:16px;padding:14px 20px;border-radius:12px;font-size:14px}
 .pair-status.success{background:rgba(34,197,94,.15);color:var(--green)}
 .pair-status.error{background:rgba(239,68,68,.15);color:#ef4444}
+.pair-status.info{background:rgba(59,130,246,.15);color:#3b82f6}
+.auth-hint{color:var(--text2);font-size:13px;margin-top:12px;text-align:center}
+.tg-auth{display:flex;align-items:center;justify-content:center;gap:10px}
 .pair-or{margin:24px 0;color:var(--muted);font-size:14px}
 .pair-link{color:var(--accent);cursor:pointer;font-size:14px}
 
@@ -216,9 +219,23 @@ n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;f
 <div class="auth-title">Explore</div>
 <div class="auth-sub">Приложение для пар</div>
 <div class="auth-btns">
-<button class="auth-btn primary" onclick="showRegister()">Я первый в паре</button>
-<button class="auth-btn secondary" onclick="showJoin()">Партнёр уже зарегистрирован</button>
+<button class="auth-btn primary tg-auth" onclick="authWithTelegram()">
+  <span style="font-size:20px">📱</span> Войти через Telegram
+</button>
+<p class="auth-hint">Мы запросим ваш номер телефона для авторизации</p>
 </div>
+<div id="authStatus"></div>
+</div>
+</div>
+
+<!-- Phone Request Screen -->
+<div class="screen" id="phoneScreen">
+<div class="pair-screen">
+<div class="pair-icon">📱</div>
+<div class="pair-title">Подтвердите номер</div>
+<div class="pair-desc">Нажмите кнопку ниже, чтобы поделиться номером телефона через Telegram</div>
+<button class="auth-btn primary tg-auth" onclick="requestPhone()">📞 Поделиться номером</button>
+<div id="phoneStatus"></div>
 </div>
 </div>
 
@@ -242,7 +259,7 @@ n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;f
 <!-- Join Screen (Enter Code) -->
 <div class="screen" id="joinScreen">
 <div class="pair-screen">
-<div class="pair-back" onclick="showAuth()">← Назад</div>
+<div class="pair-back" onclick="showPairChoice()">← Назад</div>
 <div class="pair-icon">🤝</div>
 <div class="pair-title">Введите код</div>
 <div class="pair-desc">Введите код, который прислал ваш партнёр</div>
@@ -251,6 +268,19 @@ n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;f
 <div id="joinStatus"></div>
 <div class="pair-or">или</div>
 <div class="pair-link" onclick="showRegister()">Получить свой код</div>
+</div>
+</div>
+
+<!-- Pair Choice Screen -->
+<div class="screen" id="pairChoiceScreen">
+<div class="pair-screen">
+<div class="pair-icon">💑</div>
+<div class="pair-title">Свяжитесь с партнёром</div>
+<div class="pair-desc">Выберите способ связи</div>
+<div class="auth-btns" style="gap:12px">
+<button class="auth-btn primary" onclick="showRegister()">🔗 Я первый — получить код</button>
+<button class="auth-btn secondary" onclick="showJoin()">🤝 У меня есть код партнёра</button>
+</div>
 </div>
 </div>
 
@@ -395,7 +425,7 @@ n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;f
 // ========================================
 // 🔴 ВАЖНО! ЗАМЕНИ URL НА СВОЙ ИЗ RAILWAY:
 // ========================================
-const API_HOST = 'explore-api-production.up.railway.app'; // <- СЮДА ВСТАВЬ СВОЙ URL
+const API_HOST = 'explore-api-production.up.railway.app'; // Railway URL
 const API = 'https://' + API_HOST + '/api';
 
 // ===== TELEGRAM =====
@@ -415,6 +445,7 @@ if (tg) {
 // ===== STATE =====
 let currentUser = null;
 let partner = null;
+let userPhone = null;
 let D = { questionLevels: [], positions: [], tests: [], tips: [], ideas: [], pregnancyInfo: {} };
 let S = { progress: {}, calendar: [], pregnancy: null, cycle: [] };
 let curLv, curQi = 0, curTest, curTi = 0, testRes = [];
@@ -425,14 +456,15 @@ let cycleMonth = new Date().getMonth(), cycleYear = new Date().getFullYear();
 // ===== AUTH FLOW =====
 async function checkAuth() {
   if (!userId) {
-    // Dev mode without Telegram
-    userId = 'dev_' + Date.now();
-    tgUser = { first_name: 'Тест', id: userId };
+    // Нет Telegram — показываем предупреждение
+    showAuthStatus('⚠️ Откройте приложение через Telegram', 'error');
+    return;
   }
   
   try {
     const r = await fetch(API + '/user/' + userId + '/status');
     const data = await r.json();
+    console.log('Auth check:', data);
     
     if (data.registered) {
       currentUser = data.user;
@@ -441,91 +473,178 @@ async function checkAuth() {
     }
     // else stay on auth screen
   } catch (e) {
-    console.log('API error, show auth');
+    console.log('API error:', e);
+    showAuthStatus('Ошибка подключения к серверу', 'error');
+  }
+}
+
+// Авторизация через Telegram
+async function authWithTelegram() {
+  if (!tg) {
+    showAuthStatus('⚠️ Откройте через Telegram бота', 'error');
+    return;
+  }
+  
+  showAuthStatus('Запрашиваем номер телефона...', 'info');
+  
+  // Запрос номера телефона через Telegram
+  try {
+    tg.requestContact((sent, event) => {
+      console.log('Contact response:', sent, event);
+      if (sent && event?.responseUnsafe?.contact) {
+        userPhone = event.responseUnsafe.contact.phone_number;
+        console.log('Got phone:', userPhone);
+        showAuthStatus('✅ Номер получен: ' + userPhone, 'success');
+        // Проверяем зарегистрирован ли пользователь
+        checkIfRegistered();
+      } else {
+        showAuthStatus('❌ Номер не предоставлен. Попробуйте снова.', 'error');
+      }
+    });
+  } catch(e) {
+    console.log('Contact error:', e);
+    showAuthStatus('Ошибка запроса номера', 'error');
+  }
+}
+
+async function checkIfRegistered() {
+  try {
+    const r = await fetch(API + '/user/' + userId + '/status');
+    const data = await r.json();
+    
+    if (data.registered) {
+      currentUser = data.user;
+      partner = data.partner;
+      if (partner) {
+        // Уже есть пара — входим
+        enterApp();
+      } else {
+        // Зарегистрирован но без пары — показываем код
+        goTo('registerScreen');
+        document.getElementById('myPairCode').textContent = currentUser.pairCode || '------';
+      }
+    } else {
+      // Новый пользователь — показываем выбор
+      goTo('pairChoiceScreen');
+    }
+  } catch(e) {
+    showAuthStatus('Ошибка сервера', 'error');
+  }
+}
+
+function showAuthStatus(msg, type) {
+  const el = document.getElementById('authStatus');
+  if (el) {
+    el.className = 'pair-status ' + type;
+    el.textContent = msg;
   }
 }
 
 function showAuth() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('authScreen').classList.add('active');
+  goTo('authScreen');
   document.getElementById('mainNav').style.display = 'none';
 }
 
-async function showRegister() {
+function showPairChoice() {
+  goTo('pairChoiceScreen');
+}
+
+function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('registerScreen').classList.add('active');
+  document.getElementById(screenId).classList.add('active');
+}
+
+async function showRegister() {
+  goTo('registerScreen');
   
-  // Register and get code
+  // Регистрируем пользователя и получаем код
   try {
     const r = await fetch(API + '/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        telegramId: userId,
-        name: tgUser?.first_name || 'Гость',
-        username: tgUser?.username || null
+        odUserId: userId,
+        odName: tgUser?.first_name || 'Гость',
+        odPhone: userPhone || ''
       })
     });
     const data = await r.json();
+    console.log('Register response:', data);
     
     if (data.success) {
       currentUser = data.user;
       document.getElementById('myPairCode').textContent = data.pairCode;
-    } else if (data.error === 'Already registered') {
+      toast('✅ Код создан!');
+    } else if (data.error === 'exists') {
       // User exists, get their code
       const status = await fetch(API + '/user/' + userId + '/status');
       const statusData = await status.json();
-      if (statusData.pairCode) {
-        document.getElementById('myPairCode').textContent = statusData.pairCode;
-        currentUser = statusData.user;
-        partner = statusData.partner;
+      currentUser = statusData.user;
+      partner = statusData.partner;
+      
+      if (partner) {
+        // Уже есть пара
+        toast('У вас уже есть партнёр!');
+        enterApp();
+      } else if (currentUser?.pairCode) {
+        document.getElementById('myPairCode').textContent = currentUser.pairCode;
       }
     }
   } catch (e) {
+    console.log('Register error:', e);
     toast('Ошибка сети');
   }
 }
 
 function showJoin() {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('joinScreen').classList.add('active');
-  document.getElementById('joinCodeInput').focus();
+  goTo('joinScreen');
+  setTimeout(() => document.getElementById('joinCodeInput').focus(), 100);
 }
 
 async function joinPartner() {
   const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-  if (code.length !== 6) {
-    showJoinStatus('Код должен быть 6 символов', 'error');
+  if (code.length < 4) {
+    showJoinStatus('Введите код партнёра', 'error');
     return;
   }
   
+  showJoinStatus('Подключаемся...', 'info');
+  
   try {
+    console.log('Joining with:', { userId, code, phone: userPhone });
     const r = await fetch(API + '/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        telegramId: userId,
-        name: tgUser?.first_name || 'Гость',
-        username: tgUser?.username || null,
-        pairCode: code
+        odUserId: userId,
+        odName: tgUser?.first_name || 'Гость',
+        odPhone: userPhone || '',
+        odPairCode: code
       })
     });
     const data = await r.json();
+    console.log('Join response:', data);
     
     if (data.success) {
       currentUser = data.user;
       partner = data.partner;
       showJoinStatus('✅ Связано с ' + partner.name + '!', 'success');
       if (tg) tg.HapticFeedback?.notificationOccurred('success');
-      setTimeout(enterApp, 1500);
+      toast('🎉 Вы связаны с партнёром!');
+      setTimeout(enterApp, 1000);
     } else {
-      showJoinStatus(data.error === 'Invalid code' ? 'Неверный код' : 
-                     data.error === 'Code already used' ? 'Код уже использован' :
-                     data.error === 'Already registered' ? 'Вы уже зарегистрированы' : 'Ошибка', 'error');
+      const msg = data.message || (
+        data.error === 'invalid_code' ? '❌ Неверный код' : 
+        data.error === 'used' ? '❌ Код уже использован' :
+        data.error === 'exists' ? '❌ Вы уже зарегистрированы' : 
+        '❌ Ошибка: ' + data.error
+      );
+      showJoinStatus(msg, 'error');
       if (tg) tg.HapticFeedback?.notificationOccurred('error');
     }
   } catch (e) {
-    showJoinStatus('Ошибка сети', 'error');
+    console.log('Join error:', e);
+    showJoinStatus('❌ Ошибка сети', 'error');
   }
 }
 
