@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Explore — Для пар</title>
+    <style>
+        :root{--bg:#0d0d12;--bg2:#16161f;--bg3:#1e1e2a;--accent:#ff6b9d;--accent2:#a855f7;--success:#34d399;--warn:#fbbf24;--info:#38bdf8;--text:#fff;--text2:rgba(255,255,255,0.7);--muted:rgba(255,255,255,0.4);--border:rgba(255,255,255,0.08)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+        .app{max-width:430px;margin:0 auto;padding:16px;min-height:100vh;padding-bottom:90px}
+        .screen{display:none;animation:fadeIn 0.3s}.screen.active{display:block}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .logo{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .back-btn{padding:8px 0;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:12px}
+        .feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+        .feature-card{padding:16px;border-radius:16px;cursor:pointer;position:relative;overflow:hidden}
+        .feature-card.questions{background:linear-gradient(135deg,#06b6d4,#22d3ee)}
+        .feature-card.kama{background:linear-gradient(135deg,#f43f5e,#fb7185)}
+        .feature-card.test{background:linear-gradient(135deg,#8b5cf6,#a78bfa)}
+        .feature-card.calendar{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+        .feature-card.edu{background:linear-gradient(135deg,#10b981,#34d399)}
+        .feature-card.ideas{background:linear-gradient(135deg,#ec4899,#f472b6)}
+        .feature-icon{font-size:28px;margin-bottom:6px}
+        .feature-title{font-size:14px;font-weight:700}
+        .feature-desc{font-size:10px;opacity:0.85;margin-top:2px}
+        .level-card{padding:16px;border-radius:14px;cursor:pointer;margin-bottom:10px}
+        .level-card.l1{background:linear-gradient(135deg,#10b981,#34d399)}
+        .level-card.l2{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+        .level-card.l3{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+        .level-card.l4{background:linear-gradient(135deg,#ec4899,#f472b6)}
+        .level-card.l5{background:linear-gradient(135deg,#ef4444,#f87171)}
+        .level-card.l6{background:linear-gradient(135deg,#7c2d12,#991b1b)}
+        .level-header{display:flex;justify-content:space-between;margin-bottom:4px}
+        .level-num{font-size:11px;font-weight:600;opacity:0.8}
+        .level-count{font-size:11px;opacity:0.7}
+        .level-title{font-size:16px;font-weight:700}
+        .level-desc{font-size:11px;opacity:0.9}
+        .level-progress{height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin-top:10px}
+        .level-progress-fill{height:100%;background:#fff;border-radius:2px;opacity:0.8}
+        .q-container{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+        .q-progress{display:flex;gap:3px;margin-bottom:16px;width:100%}
+        .q-dot{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.15)}
+        .q-dot.done{background:var(--success)}.q-dot.cur{background:var(--accent)}
+        .q-card{width:100%;min-height:380px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center}
+        .q-badge{padding:5px 12px;border-radius:16px;font-size:10px;font-weight:700;margin-bottom:16px}
+        .q-card.l1 .q-badge{background:rgba(16,185,129,0.2);color:#34d399}
+        .q-card.l2 .q-badge{background:rgba(59,130,246,0.2);color:#60a5fa}
+        .q-card.l3 .q-badge{background:rgba(245,158,11,0.2);color:#fbbf24}
+        .q-card.l4 .q-badge{background:rgba(236,72,153,0.2);color:#f472b6}
+        .q-card.l5 .q-badge{background:rgba(239,68,68,0.2);color:#f87171}
+        .q-card.l6 .q-badge{background:rgba(127,29,29,0.4);color:#fca5a5}
+        .q-icon{font-size:40px;margin-bottom:16px}
+        .q-text{font-size:18px;font-weight:600;line-height:1.4;flex:1;display:flex;align-items:center}
+        .q-hint{font-size:11px;color:var(--muted);margin-top:16px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:10px}
+        .q-nav{display:flex;gap:10px;margin-top:16px;width:100%}
+        .q-btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:13px;font-weight:600;cursor:pointer}
+        .q-btn.sec{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
+        .q-btn.pri{background:var(--accent);color:#fff}
+        .kama-tabs{display:flex;gap:6px;margin-bottom:16px}
+        .kama-tab{flex:1;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;text-align:center;font-size:12px;font-weight:600;cursor:pointer}
+        .kama-tab.active{background:var(--accent);border-color:var(--accent)}
+        .roulette-container{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+        .roulette-wheel{width:260px;height:260px;border-radius:50%;background:conic-gradient(from 0deg,#f43f5e,#ec4899,#a855f7,#8b5cf6,#3b82f6,#06b6d4,#10b981,#f59e0b,#f43f5e);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 40px rgba(244,63,94,0.3)}
+        .roulette-wheel::before{content:'';position:absolute;width:180px;height:180px;background:var(--bg);border-radius:50%}
+        .roulette-center{position:relative;z-index:1;text-align:center;padding:10px}
+        .roulette-name{font-size:15px;font-weight:800;margin-bottom:4px}
+        .roulette-desc{font-size:10px;color:var(--text2);line-height:1.3}
+        .spin-btn{margin-top:20px;padding:14px 40px;background:linear-gradient(135deg,#f43f5e,#ec4899);border:none;border-radius:30px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(244,63,94,0.4)}
+        .spinning .roulette-wheel{animation:spin 3s cubic-bezier(0.2,0.8,0.3,1) forwards}
+        @keyframes spin{from{transform:rotate(0)}to{transform:rotate(1800deg)}}
+        .roulette-card{margin-top:20px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;cursor:pointer}
+        .roulette-card h3{font-size:15px;margin-bottom:6px}
+        .roulette-card p{font-size:12px;color:var(--text2);line-height:1.5}
+        .roulette-card .tip{margin-top:10px;padding:10px;background:rgba(251,191,36,0.1);border-radius:8px;font-size:11px;color:var(--warn)}
+        .dice-container{display:flex;flex-direction:column;align-items:center;padding:20px 0}
+        .dice-pair{display:flex;gap:16px;margin-bottom:20px}
+        .dice{width:130px;height:100px;background:var(--bg2);border:2px solid var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:12px}
+        .dice-label{font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+        .dice-value{font-size:16px;font-weight:700;text-align:center;line-height:1.2}
+        .dice.action{border-color:var(--accent)}.dice.action .dice-value{color:var(--accent)}
+        .dice.body{border-color:var(--info)}.dice.body .dice-value{color:var(--info)}
+        .dice.rolling{animation:shake 0.5s}
+        @keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+        .dice-result{text-align:center;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%}
+        .dice-result-text{font-size:20px;font-weight:700;margin-bottom:6px}
+        .dice-result-sub{font-size:13px;color:var(--text2)}
+        .pos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+        .pos-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;text-align:center}
+        .pos-icon{font-size:32px;margin-bottom:8px}
+        .pos-name{font-size:13px;font-weight:700;margin-bottom:4px}
+        .pos-diff{display:flex;gap:3px;justify-content:center}
+        .pos-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2)}
+        .pos-dot.on{background:var(--warn)}
+        .pos-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+        .pos-modal.show{display:flex}
+        .pos-modal-content{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:380px;max-height:85vh;overflow-y:auto}
+        .pos-modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+        .pos-modal-icon{font-size:48px}
+        .pos-modal-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer}
+        .pos-modal-title{font-size:22px;font-weight:800;margin-bottom:4px}
+        .pos-modal-diff{display:flex;gap:4px;align-items:center;margin-bottom:16px}
+        .pos-modal-diff .pos-dot{width:10px;height:10px}
+        .pos-modal-section{margin-bottom:16px}
+        .pos-modal-section h4{font-size:12px;color:var(--accent);margin-bottom:6px;text-transform:uppercase}
+        .pos-modal-section p{font-size:14px;color:var(--text2);line-height:1.6}
+        .pos-modal-steps{background:var(--bg3);border-radius:12px;padding:14px}
+        .pos-modal-step{display:flex;gap:10px;margin-bottom:10px}
+        .pos-modal-step:last-child{margin-bottom:0}
+        .pos-modal-step-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .pos-modal-step-text{font-size:13px;color:var(--text2);line-height:1.4}
+        .pos-modal-tip{padding:12px;background:rgba(251,191,36,0.1);border-left:3px solid var(--warn);border-radius:0 8px 8px 0}
+        .pos-modal-tip-title{font-size:11px;color:var(--warn);font-weight:700;margin-bottom:4px}
+        .pos-modal-tip-text{font-size:12px;color:var(--text2)}
+        .pos-modal-variants{margin-top:12px}
+        .pos-modal-variant{display:inline-block;padding:6px 12px;background:var(--bg);border-radius:20px;font-size:11px;margin:0 6px 6px 0}
+        .test-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;cursor:pointer}
+        .test-header{display:flex;gap:12px;align-items:center}
+        .test-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px}
+        .test-icon.compat{background:linear-gradient(135deg,#ec4899,#f472b6)}
+        .test-icon.style{background:linear-gradient(135deg,#8b5cf6,#a78bfa)}
+        .test-icon.desire{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+        .test-info{flex:1}
+        .test-title{font-size:14px;font-weight:700}
+        .test-desc{font-size:11px;color:var(--text2)}
+        .test-meta{font-size:10px;color:var(--muted);margin-top:4px}
+        .test-q{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+        .test-q-num{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:8px}
+        .test-q-text{font-size:16px;font-weight:600;margin-bottom:16px}
+        .test-opts{display:flex;flex-direction:column;gap:8px}
+        .test-opt{padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer}
+        .test-opt:hover{border-color:var(--accent)}
+        .test-result{text-align:center;padding:24px}
+        .test-result-icon{font-size:64px;margin-bottom:16px}
+        .test-result-title{font-size:20px;font-weight:800;margin-bottom:8px}
+        .test-result-score{font-size:48px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .test-result-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-top:12px}
+        .cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .cal-month{font-size:18px;font-weight:700}
+        .cal-nav-btn{width:32px;height:32px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:14px;cursor:pointer}
+        .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
+        .cal-weekday{text-align:center;font-size:11px;color:var(--muted);padding:8px 0}
+        .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+        .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:13px;cursor:pointer;background:var(--bg2);border:1px solid transparent;position:relative}
+        .cal-day.other{opacity:0.3}
+        .cal-day.today{border-color:var(--accent)}
+        .cal-day.has-entry::after{content:'';position:absolute;bottom:4px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+        .cal-entry{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
+        .cal-entry-header{display:flex;justify-content:space-between;margin-bottom:8px}
+        .cal-entry-date{font-size:14px;font-weight:600}
+        .cal-entry-type{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:600;background:rgba(255,107,157,0.15);color:var(--accent)}
+        .cal-entry-content{font-size:13px;color:var(--text2)}
+        .cal-add-btn{position:fixed;bottom:100px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);border:none;font-size:24px;color:#fff;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,157,0.4)}
+        .cal-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;display:none;align-items:flex-end;justify-content:center}
+        .cal-modal.show{display:flex}
+        .cal-modal-content{background:var(--bg2);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:430px}
+        .cal-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+        .cal-modal-title{font-size:18px;font-weight:700}
+        .cal-modal-close{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer}
+        .cal-form-group{margin-bottom:14px}
+        .cal-form-label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block}
+        .cal-form-input{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px}
+        .cal-form-input:focus{outline:none;border-color:var(--accent)}
+        .cal-type-btns{display:flex;gap:8px}
+        .cal-type-btn{flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+        .cal-type-btn.active{border-color:var(--accent);background:rgba(255,107,157,0.1)}
+        .cal-mood-btns{display:flex;gap:8px;justify-content:center}
+        .cal-mood-btn{width:44px;height:44px;border-radius:50%;border:2px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer}
+        .cal-mood-btn.active{border-color:var(--accent);background:rgba(255,107,157,0.1)}
+        .cal-save-btn{width:100%;padding:14px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+        .tip-full{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+        .tip-full-header{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+        .tip-full-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+        .tip-full-icon.her{background:linear-gradient(135deg,#ec4899,#f472b6)}
+        .tip-full-icon.him{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+        .tip-full-icon.both{background:linear-gradient(135deg,#8b5cf6,#a78bfa)}
+        .tip-full-cat{font-size:10px;color:var(--accent);font-weight:600}
+        .tip-full-title{font-size:15px;font-weight:700}
+        .tip-full-content{font-size:13px;color:var(--text2);line-height:1.6}
+        .tip-full-steps{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+        .tip-full-step{display:flex;gap:10px;margin-bottom:8px}
+        .tip-full-step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,13,18,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100}
+        .nav-items{display:flex;justify-content:space-around;max-width:430px;margin:0 auto}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;background:none;border:none;color:var(--muted);font-size:9px;font-weight:600;cursor:pointer}
+        .nav-item.active{color:var(--accent)}
+        .nav-icon{font-size:20px}
+        .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(60px);padding:12px 20px;background:#fff;color:#000;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;z-index:999}
+        .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="screen active" id="homeScreen">
+        <div class="header"><div class="logo">Explore</div></div>
+        <div class="feature-grid">
+            <div class="feature-card questions" onclick="showScreen('questionsScreen')"><div class="feature-icon">💬</div><div class="feature-title">120 вопросов</div><div class="feature-desc">6 уровней глубины</div></div>
+            <div class="feature-card kama" onclick="showScreen('kamaScreen')"><div class="feature-icon">🎲</div><div class="feature-title">Камасутра</div><div class="feature-desc">Рулетка и кубики</div></div>
+            <div class="feature-card test" onclick="showScreen('testsScreen')"><div class="feature-icon">💕</div><div class="feature-title">Тесты</div><div class="feature-desc">Совместимость</div></div>
+            <div class="feature-card calendar" onclick="showScreen('calendarScreen')"><div class="feature-icon">📅</div><div class="feature-title">Календарь</div><div class="feature-desc">Ваша история</div></div>
+            <div class="feature-card edu" onclick="showScreen('tipsScreen')"><div class="feature-icon">💡</div><div class="feature-title">Советы</div><div class="feature-desc">Техники подробно</div></div>
+            <div class="feature-card ideas" onclick="showScreen('ideasScreen')"><div class="feature-icon">✨</div><div class="feature-title">Идеи</div><div class="feature-desc">Что попробовать</div></div>
+        </div>
+    </div>
+    <div class="screen" id="questionsScreen">
+        <div class="back-btn" onclick="showScreen('homeScreen')">← Главная</div>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:4px">120 вопросов</h2>
+        <p style="color:var(--text2);margin-bottom:16px;font-size:12px">От лёгких до запретных</p>
+        <div id="questionLevels"></div>
+    </div>
+    <div class="screen" id="qPlayScreen">
+        <div class="back-btn" onclick="showScreen('questionsScreen')">← Уровни</div>
+        <div class="q-container" id="qContainer"></div>
+    </div>
+    <div class="screen" id="kamaScreen">
+        <div class="back-btn" onclick="showScreen('homeScreen')">← Главная</div>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:12px">🔥 Камасутра</h2>
+        <div class="kama-tabs">
+            <div class="kama-tab active" onclick="showKamaTab('roulette',this)">🎰 Рулетка</div>
+            <div class="kama-tab" onclick="showKamaTab('dice',this)">🎲 Кубики</div>
+            <div class="kama-tab" onclick="showKamaTab('positions',this)">📖 Позы</div>
+        </div>
+        <div id="kamaContent"></div>
+    </div>
+    <div class="screen" id="testsScreen">
+        <div class="back-btn" onclick="showScreen('homeScreen')">← Главная</div>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:4px">Тесты</h2>
+        <p style="color:var(--text2);margin-bottom:16px;font-size:12px">Узнайте друг друга лучше</p>
+        <div id="testsList"></div>
+    </div>
+    <div class="screen" id="testPlayScreen">
+        <div class="back-btn" onclick="showScreen('testsScreen')">← Тесты</div>
+        <div id="testContent"></div>
+    </div>
+    <div class="screen" id="calendarScreen">
+        <div class="back-btn" onclick="showScreen('homeScreen')">← Главная</div>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:12px">📅 Календарь</h2>
+        <div id="calendarContent"></div>
+        <button class="cal-add-btn" onclick="openCalModal()">+</button>
+    </div>
+    <div class="screen" id="tipsScreen">
+        <div class="back-btn" onclick="showScreen('homeScreen')">← Главная</div>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:12px">💡 Советы</h2>
+        <div id="tipsList"></div>
+    </div>
+    <div class="screen" id="ideasScreen">
+        <div class="back-btn" onclick="showScreen('homeScreen')">← Главная</div>
+        <h2 style="font-size:20px;font-weight:800;margin-bottom:12px">✨ Идеи</h2>
+        <div id="ideasList"></div>
+    </div>
+</div>
+<nav class="bottom-nav">
+    <div class="nav-items">
+        <button class="nav-item active" onclick="showScreen('homeScreen')" id="navHome"><span class="nav-icon">🏠</span><span>Главная</span></button>
+        <button class="nav-item" onclick="showScreen('questionsScreen')" id="navQ"><span class="nav-icon">💬</span><span>Вопросы</span></button>
+        <button class="nav-item" onclick="showScreen('kamaScreen')" id="navKama"><span class="nav-icon">🎲</span><span>Камасутра</span></button>
+        <button class="nav-item" onclick="showScreen('calendarScreen')" id="navCal"><span class="nav-icon">📅</span><span>Календарь</span></button>
+        <button class="nav-item" onclick="showScreen('tipsScreen')" id="navTips"><span class="nav-icon">💡</span><span>Советы</span></button>
+    </div>
+</nav>
+<div class="pos-modal" id="posModal"><div class="pos-modal-content" id="posModalContent"></div></div>
+<div class="cal-modal" id="calModal">
+    <div class="cal-modal-content">
+        <div class="cal-modal-header"><div class="cal-modal-title">Новая запись</div><button class="cal-modal-close" onclick="closeCalModal()">✕</button></div>
+        <div class="cal-form-group"><label class="cal-form-label">Тип</label><div class="cal-type-btns"><div class="cal-type-btn active" onclick="selectCalType('intimate',this)">💕 Близость</div><div class="cal-type-btn" onclick="selectCalType('special',this)">⭐ Особенное</div></div></div>
+        <div class="cal-form-group"><label class="cal-form-label">Что попробовали?</label><input type="text" class="cal-form-input" id="calTitle" placeholder="Новая поза, массаж..."></div>
+        <div class="cal-form-group"><label class="cal-form-label">Заметки</label><textarea class="cal-form-input" id="calNotes" rows="2" placeholder="Как прошло?"></textarea></div>
+        <div class="cal-form-group"><label class="cal-form-label">Настроение</label><div class="cal-mood-btns"><button class="cal-mood-btn" onclick="selectMood('🔥',this)">🔥</button><button class="cal-mood-btn active" onclick="selectMood('😍',this)">😍</button><button class="cal-mood-btn" onclick="selectMood('😊',this)">😊</button><button class="cal-mood-btn" onclick="selectMood('💭',this)">💭</button></div></div>
+        <button class="cal-save-btn" onclick="saveCalEntry()">Сохранить</button>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const qLevels=[
+{id:1,title:"Знакомство",desc:"Лёгкие вопросы",color:"l1",icon:"🌱",questions:[
+{q:"Какой момент сегодня был лучшим?",h:"Делитесь мелочами"},{q:"В какой стране хотел бы жить?",h:"Мечты"},{q:"Любимое воспоминание из детства?",h:"Детство"},{q:"Что тебя вдохновляет?",h:"Мотивация"},{q:"Какую суперспособность хочешь?",h:"Фантазии"},{q:"Идеальный выходной?",h:"Отдых"},{q:"Песня для настроения?",h:"Музыка"},{q:"Чему хочешь научиться?",h:"Цели"},{q:"Самое смелое что делал?",h:"Истории"},{q:"На что потратишь миллион?",h:"Приоритеты"},{q:"Фильм для пересмотра?",h:"Вкусы"},{q:"3 важные вещи в жизни?",h:"Ценности"},{q:"Странный талант?",h:"Факты"},{q:"Кем мечтал стать в детстве?",h:"Мечты"},{q:"Любимое время года?",h:"Радости"},{q:"Книга которую советуешь?",h:"Влияние"},{q:"Идеальный ужин?",h:"Вкусы"},{q:"Сова или жаворонок?",h:"Биоритмы"},{q:"Самое красивое место?",h:"Путешествия"},{q:"Что делает тебя счастливым?",h:"Счастье"}]},
+{id:2,title:"Отношения",desc:"Про вашу пару",color:"l2",icon:"💙",questions:[
+{q:"Что нравится в наших отношениях?",h:"Позитив"},{q:"Когда понял что влюбился?",h:"Начало"},{q:"Какой момент вспоминаешь чаще?",h:"Воспоминания"},{q:"Что я делаю от чего тебе хорошо?",h:"Язык любви"},{q:"Наши отношения одним словом?",h:"Сравните"},{q:"Что хочешь делать чаще вместе?",h:"Улучшение"},{q:"Качество во мне которое ценишь?",h:"Признание"},{q:"Где видишь нас через 5 лет?",h:"Будущее"},{q:"Что привлекло во мне сначала?",h:"Первое впечатление"},{q:"Лучшее наше свидание?",h:"Романтика"},{q:"Чему научился благодаря нам?",h:"Рост"},{q:"Любимая совместная привычка?",h:"Ритуалы"},{q:"О чём мечтаешь для нас?",h:"Цели"},{q:"Когда чувствуешь себя ближе ко мне?",h:"Близость"},{q:"Что изменить в быту?",h:"Практика"},{q:"Как лучше поддерживать тебя?",h:"Забота"},{q:"Что удивило во мне?",h:"Открытия"},{q:"Какой мой комплимент запомнился?",h:"Слова"},{q:"Что не хочешь менять между нами?",h:"Ценности"},{q:"Как бы заново завоёвывал меня?",h:"Романтика"}]},
+{id:3,title:"Глубже",desc:"Эмоции и уязвимость",color:"l3",icon:"💛",questions:[
+{q:"Чего боишься в отношениях?",h:"Уязвимость"},{q:"Что ранило в прошлом?",h:"История"},{q:"Когда чувствуешь себя любимым?",h:"Язык любви"},{q:"О чём сложно говорить?",h:"Безопасность"},{q:"Что скрываешь от других?",h:"Доверие"},{q:"Что бы изменил в себе?",h:"Принятие"},{q:"Когда последний раз плакал?",h:"Эмоции"},{q:"Что нужно когда плохо?",h:"Поддержка"},{q:"Самый большой провал?",h:"Уроки"},{q:"За что стыдно?",h:"Прошлое"},{q:"Самое тяжёлое решение?",h:"Опыт"},{q:"Что не можешь простить себе?",h:"Конфликты"},{q:"Когда одинок рядом с людьми?",h:"Глубина"},{q:"Самая большая неуверенность?",h:"Уязвимость"},{q:"Что хочешь услышать от родителей?",h:"Детство"},{q:"Самый большой секрет?",h:"Доверие"},{q:"Чего избегаешь?",h:"Паттерны"},{q:"Когда был полностью счастлив?",h:"Счастье"},{q:"Что пугает в будущем?",h:"Страхи"},{q:"Если год жить — что изменишь?",h:"Приоритеты"}]},
+{id:4,title:"Близость",desc:"Физическая нежность",color:"l4",icon:"💗",questions:[
+{q:"Какие прикосновения нравятся?",h:"Физика"},{q:"Что возбуждает вне спальни?",h:"Флирт"},{q:"Самый запоминающийся поцелуй?",h:"Романтика"},{q:"Что хочешь попробовать но стесняешься сказать?",h:"Желания"},{q:"Когда чувствуешь себя желанным?",h:"Желание"},{q:"Что нравится в моём теле?",h:"Комплименты"},{q:"Самый особенный момент близости?",h:"Значимость"},{q:"Как сделать тебя счастливее в постели?",h:"Коммуникация"},{q:"Нравится когда я инициирую?",h:"Динамика"},{q:"Идеальная обстановка для романтики?",h:"Атмосфера"},{q:"Что чувствуешь от моего взгляда с желанием?",h:"Внимание"},{q:"Где редко касаются но хотелось бы?",h:"Зоны"},{q:"Нравится dirty talk?",h:"Слова"},{q:"Что убивает желание?",h:"Антиафродизиаки"},{q:"Как понимаешь что я тебя хочу?",h:"Сигналы"},{q:"Спонтанный или запланированный секс?",h:"Стиль"},{q:"Прелюдия или секс важнее?",h:"Приоритеты"},{q:"Любимое время для секса?",h:"Биоритмы"},{q:"Что чувствуешь после хорошего секса?",h:"Связь"},{q:"Как часто нужна близость?",h:"Потребности"}]},
+{id:5,title:"Без табу",desc:"Откровенные вопросы",color:"l5",icon:"🔥",questions:[
+{q:"Самая сокровенная сексуальная фантазия?",h:"Доверие"},{q:"Что возбуждает но никому не говорил?",h:"Скрытое"},{q:"Что хочешь чтобы я делал чаще в постели?",h:"Пожелания"},{q:"Что хочешь попробовать впервые?",h:"Новое"},{q:"Лучший оргазм — что вызвало?",h:"Удовольствие"},{q:"Что точно НЕТ в сексе?",h:"Границы"},{q:"Идеальная частота секса?",h:"Ожидания"},{q:"Что заводит во мне больше всего?",h:"Притяжение"},{q:"Смотришь порно? Какое?",h:"Честность"},{q:"Мастурбируешь? Как часто?",h:"Личное"},{q:"Лучший секс в жизни — почему?",h:"Идеал"},{q:"Какую роль хочешь сыграть?",h:"Ролевые"},{q:"Хочешь попробовать игрушки?",h:"Разнообразие"},{q:"Секс в необычных местах?",h:"Адреналин"},{q:"Доминировать или подчиняться?",h:"Власть"},{q:"Что думаешь о BDSM?",h:"Эксперименты"},{q:"Есть фетиш?",h:"Открытость"},{q:"Что хочешь чтобы я надел(а)?",h:"Визуал"},{q:"Комплимент о сексе со мной?",h:"Обратная связь"},{q:"Что угодно этой ночью — что?",h:"Без ограничений"}]},
+{id:6,title:"Запретное",desc:"Самые жёсткие 🔞",color:"l6",icon:"😈",questions:[
+{q:"Самая грязная фантазия которую стыдно признать?",h:"Полное доверие"},{q:"Думал о сексе втроём? С кем?",h:"Откровенно"},{q:"Что бы сделал если бы я разрешил ВСЁ?",h:"Без границ"},{q:"Хотел бы смотреть как я с кем-то другим?",h:"Вуайеризм"},{q:"Хотел бы чтобы я смотрел как ты с кем-то?",h:"Эксгибиционизм"},{q:"Самое грязное что хочешь услышать в постели?",h:"Dirty talk"},{q:"Самое грязное что хочешь сказать мне?",h:"Слова"},{q:"Хотел бы снять нас на видео?",h:"Запись"},{q:"Фантазировал о ком-то из знакомых?",h:"Честность"},{q:"Что думаешь об анальном сексе?",h:"Табу"},{q:"Хочешь чтобы я полностью доминировал?",h:"Контроль"},{q:"Хочешь полностью подчиниться мне?",h:"Submission"},{q:"Возбуждает лёгкая боль?",h:"BDSM"},{q:"Хочешь чтобы я связал тебя?",h:"Бондаж"},{q:"Возбуждает секс в публичном месте?",h:"Риск"},{q:"Самое странное что возбуждает?",h:"Фетиши"},{q:"Порно которое смотришь втайне?",h:"Секреты"},{q:"Что бы попросил если бы не стыдился?",h:"Желания"},{q:"Возбуждает мысль быть пойманными?",h:"Адреналин"},{q:"Без последствий — что бы сделал?",h:"Без тормозов"}]}
+];
+
+const positions=[
+{name:"Миссионерская",icon:"🔥",diff:1,desc:"Классика лицом к лицу. Он сверху, она на спине. Интимная и романтичная поза с полным контактом тел.",
+howTo:["Она ложится на спину, слегка раздвинув ноги","Он ложится сверху, опираясь на руки или локти","Входит в неё, контролируя глубину и ритм","Для G-точки: подложить подушку под её бёдра","Можно целоваться, смотреть в глаза, обниматься"],
+tip:"Подушка под её таз изменит угол и усилит стимуляцию G-точки",variants:["С ногами на плечах","С подушкой под бёдрами","Грудь к груди"]},
+{name:"Наездница",icon:"🤠",diff:1,desc:"Она сверху лицом к нему. Полный контроль глубины, ритма и угла у неё. Отличная стимуляция клитора.",
+howTo:["Он ложится на спину","Она садится сверху лицом к нему","Направляет его в себя","Двигается вверх-вниз или вперёд-назад","Он может ласкать её грудь и клитор"],
+tip:"Движения вперёд-назад лучше стимулируют клитор чем вверх-вниз",variants:["Сидя прямо","Наклонившись вперёд","Откинувшись назад"]},
+{name:"Догги-стайл",icon:"🐕",diff:1,desc:"Она на четвереньках, он сзади. Глубокое проникновение, стимуляция G-точки, визуальное удовольствие.",
+howTo:["Она встаёт на четвереньки","Он на коленях позади неё","Входит сзади, держа за бёдра","Контролирует ритм и глубину","Может ласкать спину, ягодицы, клитор"],
+tip:"Если она прогнёт спину вниз — угол изменится и усилит ощущения",variants:["Она на локтях","Грудью на кровати","Стоя у кровати"]},
+{name:"Ложки",icon:"🥄",diff:1,desc:"Оба на боку, он сзади. Нежная, интимная, расслабленная. Идеальна для утра или когда устали.",
+howTo:["Оба ложатся на бок","Он позади неё, прижимается","Она слегка выгибает спину","Он входит сзади","Может обнимать, ласкать грудь и клитор"],
+tip:"Идеальна для утреннего секса, беременности, или нежности",variants:["Переплетя ноги","Она закидывает ногу назад","Полулёжа"]},
+{name:"Лотос",icon:"🧘",diff:2,desc:"Он сидит, она на нём обхватив ногами. Максимальная близость, контакт глаза в глаза, тантрическая.",
+howTo:["Он садится скрестив ноги или вытянув","Она садится на него обхватив ногами","Обнимают друг друга","Двигаются медленно, синхронно","Можно раскачиваться вместе"],
+tip:"Синхронизируйте дыхание — усилит эмоциональную и физическую связь",variants:["Он с прямыми ногами","На стуле","Стоя у стены"]},
+{name:"Бабочка",icon:"🦋",diff:2,desc:"Она на краю кровати/стола, он стоит между её ног. Глубокое проникновение, он контролирует.",
+howTo:["Она ложится на край поверхности","Ноги свисают или на его плечах","Он стоит между её ног","Держит за бёдра и входит","Контролирует глубину и ритм"],
+tip:"Высота поверхности должна быть чтобы гениталии на одном уровне",variants:["Ноги на плечах","Ноги обхватывают талию","Она держится за край"]},
+{name:"69",icon:"6️⃣",diff:2,desc:"Взаимный оральный секс одновременно. Удовольствие для обоих, можно как прелюдию или основное.",
+howTo:["Один ложится на спину","Второй сверху в обратном направлении","Голова у гениталий партнёра","Ласкайте орально одновременно","На боку — удобнее для обоих"],
+tip:"Не обязательно кончать так — отличная прелюдия",variants:["Лёжа","На боку","Сидя"]},
+{name:"Стоя у стены",icon:"🧱",diff:2,desc:"Она спиной к стене, он держит её или она обхватывает ногой. Страсть, спонтанность, адреналин.",
+howTo:["Она спиной к стене","Он прижимает её","Она обхватывает его ногой или обеими","Он входит стоя","Опираться на стену для устойчивости"],
+tip:"Если поднять сложно — она на носочках или ступенька",variants:["Одна нога поднята","Обе ноги обхватывают","На цыпочках"]},
+{name:"На стуле",icon:"🪑",diff:1,desc:"Он сидит на стуле, она садится сверху. Удобно, интимно, много контроля у неё.",
+howTo:["Он на крепком стуле без подлокотников","Она садится лицом или спиной","Опирается ногами на пол","Двигается как хочет","Он может обнимать"],
+tip:"Стул без подлокотников даёт больше свободы",variants:["Лицом","Спиной","На корточках"]},
+{name:"Прон-боун",icon:"⬇️",diff:2,desc:"Она на животе ноги вместе, он сверху сзади. Плотный контакт, давление, интенсивные ощущения.",
+howTo:["Она на живот, ноги вместе","Он сверху сзади","Входит в этом положении","Плотный контакт всего тела","Может шептать на ухо"],
+tip:"Подушка под её таз изменит угол",variants:["Подушка под бёдрами","Её ноги между его","Её ноги снаружи"]}
+];
+
+const diceActions=["Поцелуй","Лизни","Погладь","Подуй на","Укуси","Массируй"];
+const diceBodyParts=["шею","губы","ухо","грудь","живот","бедро"];
+
+const tests=[
+{id:"compat",title:"Сексуальная совместимость",desc:"Насколько вы совпадаете",icon:"compat",time:"5 мин",questions:[
+{q:"Как часто хотите секса?",opts:["Каждый день","3-4 раза/неделю","1-2 раза/неделю","Пару раз/месяц"]},
+{q:"Прелюдия или акт важнее?",opts:["Прелюдия","Одинаково","Сам акт","По настроению"]},
+{q:"Спонтанный или план?",opts:["Спонтанный","Больше спонтанный","Больше план","План"]},
+{q:"Эксперименты?",opts:["Обожаю","Открыт","Проверенное","Не люблю"]},
+{q:"Свет?",opts:["Темнота","Приглушённый","Яркий","Не важно"]},
+{q:"Dirty talk?",opts:["Да!","Иногда","Нейтрально","Нет"]},
+{q:"Инициатива?",opts:["Я чаще","Поровну","Партнёр","Жду"]},
+{q:"Длительность?",opts:["15-20 мин","30-45 мин","Час+","Зависит"]}]},
+{id:"style",title:"Сексуальный стиль",desc:"Романтик или экспериментатор?",icon:"style",time:"4 мин",questions:[
+{q:"Что заводит?",opts:["Нежность","Страсть","Эксперименты","Связь"]},
+{q:"Идеальная прелюдия?",opts:["Массаж","Поцелуи","Ролевая","Разговор"]},
+{q:"Где секс?",opts:["Спальня","Разные комнаты","Необычные места","Везде"]},
+{q:"Игрушки?",opts:["Не нужны","Иногда","Регулярно","Всегда"]},
+{q:"Музыка?",opts:["Романтика","Ритм","Без","По настроению"]},
+{q:"После секса?",opts:["Обнимаемся","Спим","Раунд 2","Едим"]}]},
+{id:"desire",title:"Язык желания",desc:"Как выражаете желание",icon:"desire",time:"4 мин",questions:[
+{q:"Как показываете желание?",opts:["Говорю","Касаюсь","Флиртую","Жду"]},
+{q:"Что заводит?",opts:["Слова","Касания","Визуал","Забота"]},
+{q:"Лучшее время?",opts:["Утро","Вечер","День","Ночь"]},
+{q:"Что включает?",opts:["Поцелуй в шею","Взгляд","Шёпот","Касание бёдер"]},
+{q:"Прелюдия?",opts:["Минимум","10-15 мин","20-30 мин","Долго"]}]}
+];
+
+const tips=[
+{cat:"Для неё",icon:"her",title:"G-точка: как найти",content:"G-точка на передней стенке влагалища, 3-5 см от входа. Текстура отличается — рельефнее. Увеличивается при возбуждении.",
+steps:["Она должна быть возбуждена","Палец подушечкой к животу","Найдите рельефную область","Движение 'иди сюда'","Давление важнее скорости","Комбинируйте с клитором"]},
+{cat:"Для него",icon:"him",title:"Уздечка — ключ",content:"Уздечка — полоска кожи под головкой. Самая чувствительная зона пениса с максимумом нервных окончаний.",
+steps:["Кончик языка для касаний","Вверх-вниз по уздечке","Круговые движения","Комбинируйте с рукой","Не давите сильно","В минете — внимание при движении вверх"]},
+{cat:"Для него",icon:"him",title:"Простата: мощные оргазмы",content:"Простата в 5-7 см внутри к животу. Стимуляция даёт интенсивные оргазмы. Можно внешне или внутренне.",
+steps:["Внешне: давите на промежность","Внутренне: палец или игрушка","Много смазки обязательно","Двигайтесь медленно","Движение 'иди сюда'","Комбинируйте с оральным"]},
+{cat:"Для неё",icon:"her",title:"Клиторальный оргазм",content:"Клитор — 8000 нервных окончаний. Только 25% кончают от проникновения. Клитор — ключ к оргазму.",
+steps:["Начинайте вокруг клитора","Плоский язык — широко медленно","Нашли что работает — НЕ МЕНЯЙТЕ!","20 минут в среднем, не торопитесь","Добавьте пальцы внутрь","Спрашивайте: быстрее? сильнее?"]},
+{cat:"Для обоих",icon:"both",title:"Эджинг: сильнее в 3 раза",content:"Эджинг — до грани и стоп. 3-5 раз делает финальный оргазм в разы интенсивнее.",
+steps:["До грани оргазма","Остановитесь за секунды до","Ждите 20-30 секунд","Повторите 3-5 раз","Каждый раз ближе к грани","Финал будет мощным"]},
+{cat:"Для обоих",icon:"both",title:"Смазка меняет всё",content:"Смазка — не признак проблемы. Делает секс приятнее, безопаснее, комфортнее для обоих.",
+steps:["На воде — универсальная","На силиконе — для душа","Масляная — не с презервативами","Наносите щедро","Добавляйте в процессе","Для анала — обязательно много"]}
+];
+
+const ideas=[
+{cat:"💕 Романтика",items:["Ужин при свечах","Танец дома","Письма любви","Завтрак в постель","Ванна вдвоём","Массаж с маслом"]},
+{cat:"🔥 Прелюдия",items:["Стриптиз","Поцелуи везде","Лёд и тепло","Эротический массаж","Dirty talk","30 мин прелюдии"]},
+{cat:"🎭 Фантазии",items:["Незнакомцы в баре","Ролевая игра","Sexting весь день","Завязанные глаза","Порно вместе"]},
+{cat:"📍 Места",items:["В душе","На кухне","На балконе","В машине","В отеле","На природе"]}
+];
+
+let state={qProgress:{},calEntries:[]};
+let currentLevel=null,currentQIdx=0,currentTest=null,currentTestIdx=0,testResults=[];
+let currentMonth=new Date().getMonth(),currentYear=new Date().getFullYear();
+let calType='intimate',calMood='😍';
+
+function load(){const s=localStorage.getItem('exploreV3');if(s)state={...state,...JSON.parse(s)};}
+function save(){localStorage.setItem('exploreV3',JSON.stringify(state));}
+load();init();
+
+function init(){renderLevels();renderKamaRoulette();renderTests();renderCalendar();renderTips();renderIdeas();}
+
+function renderLevels(){
+document.getElementById('questionLevels').innerHTML=qLevels.map(l=>{
+const p=state.qProgress[l.id]||0;
+return`<div class="level-card ${l.color}" onclick="startLevel(${l.id})">
+<div class="level-header"><div class="level-num">Уровень ${l.id}</div><div class="level-count">${p}/${l.questions.length}</div></div>
+<div class="level-title">${l.icon} ${l.title}</div><div class="level-desc">${l.desc}</div>
+<div class="level-progress"><div class="level-progress-fill" style="width:${p/l.questions.length*100}%"></div></div></div>`;}).join('');}
+
+function startLevel(id){currentLevel=qLevels.find(l=>l.id===id);currentQIdx=state.qProgress[id]||0;if(currentQIdx>=currentLevel.questions.length)currentQIdx=0;renderQ();showScreen('qPlayScreen');}
+
+function renderQ(){const l=currentLevel,q=l.questions[currentQIdx];
+document.getElementById('qContainer').innerHTML=`
+<div class="q-progress">${l.questions.map((_,i)=>`<div class="q-dot${i<currentQIdx?' done':''}${i===currentQIdx?' cur':''}"></div>`).join('')}</div>
+<div class="q-card ${l.color}"><div class="q-badge">${l.icon} ${l.title}</div><div class="q-icon">💬</div><div class="q-text">${q.q}</div>${q.h?`<div class="q-hint">💡 ${q.h}</div>`:''}</div>
+<div class="q-nav"><button class="q-btn sec" onclick="prevQ()">←</button><button class="q-btn pri" onclick="nextQ()">Ответили →</button></div>`;}
+
+function nextQ(){currentQIdx++;state.qProgress[currentLevel.id]=currentQIdx;save();if(currentQIdx>=currentLevel.questions.length){showToast('🎉 Уровень пройден!');renderLevels();showScreen('questionsScreen');}else renderQ();}
+function prevQ(){if(currentQIdx>0){currentQIdx--;renderQ();}else showScreen('questionsScreen');}
+
+function showKamaTab(t,el){document.querySelectorAll('.kama-tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(t==='roulette')renderKamaRoulette();else if(t==='dice')renderKamaDice();else renderKamaPos();}
+
+function renderKamaRoulette(){document.getElementById('kamaContent').innerHTML=`
+<div class="roulette-container" id="rCont">
+<div class="roulette-wheel"><div class="roulette-center"><div class="roulette-name" id="rName">Крутите!</div><div class="roulette-desc" id="rDesc">Выпадет поза</div></div></div>
+<button class="spin-btn" onclick="spin()">🎰 Крутить</button>
+<div class="roulette-card" id="rCard" style="display:none"></div></div>`;}
+
+function spin(){const p=positions[Math.floor(Math.random()*positions.length)];
+document.getElementById('rCont').classList.add('spinning');
+document.getElementById('rName').textContent='...';document.getElementById('rDesc').textContent='';document.getElementById('rCard').style.display='none';
+setTimeout(()=>{document.getElementById('rCont').classList.remove('spinning');
+document.getElementById('rName').textContent=p.icon+' '+p.name;document.getElementById('rDesc').textContent='Нажмите ↓';
+document.getElementById('rCard').style.display='block';
+document.getElementById('rCard').innerHTML=`<h3>${p.icon} ${p.name}</h3><p>${p.desc}</p><div class="tip">💡 ${p.tip}</div>`;
+document.getElementById('rCard').onclick=()=>showPos(p.name);},3000);}
+
+function renderKamaDice(){document.getElementById('kamaContent').innerHTML=`
+<div class="dice-container">
+<div class="dice-pair"><div class="dice action" id="dA"><div class="dice-label">Действие</div><div class="dice-value">🎲</div></div><div class="dice body" id="dB"><div class="dice-label">Куда</div><div class="dice-value">🎲</div></div></div>
+<div class="dice-result" id="dR"><div class="dice-result-text">Бросьте!</div><div class="dice-result-sub">😏</div></div>
+<button class="spin-btn" onclick="roll()">🎲 Бросить</button></div>`;}
+
+function roll(){const d1=document.getElementById('dA'),d2=document.getElementById('dB');
+d1.classList.add('rolling');d2.classList.add('rolling');d1.querySelector('.dice-value').textContent='🎲';d2.querySelector('.dice-value').textContent='🎲';
+setTimeout(()=>{d1.classList.remove('rolling');d2.classList.remove('rolling');
+const a=diceActions[Math.floor(Math.random()*diceActions.length)],b=diceBodyParts[Math.floor(Math.random()*diceBodyParts.length)];
+d1.querySelector('.dice-value').textContent=a;d2.querySelector('.dice-value').textContent=b;
+document.getElementById('dR').innerHTML=`<div class="dice-result-text">${a} ${b}</div><div class="dice-result-sub">Выполняйте! 😏</div>`;},500);}
+
+function renderKamaPos(){document.getElementById('kamaContent').innerHTML=`<div class="pos-grid">${positions.map(p=>`
+<div class="pos-card" onclick="showPos('${p.name}')"><div class="pos-icon">${p.icon}</div><div class="pos-name">${p.name}</div>
+<div class="pos-diff">${[1,2,3].map(d=>`<div class="pos-dot${d<=p.diff?' on':''}"></div>`).join('')}</div></div>`).join('')}</div>`;}
+
+function showPos(name){const p=positions.find(x=>x.name===name);if(!p)return;
+document.getElementById('posModalContent').innerHTML=`
+<div class="pos-modal-header"><div class="pos-modal-icon">${p.icon}</div><button class="pos-modal-close" onclick="closePos()">✕</button></div>
+<div class="pos-modal-title">${p.name}</div>
+<div class="pos-modal-diff">${[1,2,3].map(d=>`<div class="pos-dot${d<=p.diff?' on':''}"></div>`).join('')}<span style="margin-left:8px;font-size:11px;color:var(--muted)">${p.diff===1?'Легко':p.diff===2?'Средне':'Сложно'}</span></div>
+<div class="pos-modal-section"><h4>Описание</h4><p>${p.desc}</p></div>
+<div class="pos-modal-section"><h4>Как выполнять</h4><div class="pos-modal-steps">${p.howTo.map((s,i)=>`<div class="pos-modal-step"><div class="pos-modal-step-num">${i+1}</div><div class="pos-modal-step-text">${s}</div></div>`).join('')}</div></div>
+<div class="pos-modal-tip"><div class="pos-modal-tip-title">💡 Совет</div><div class="pos-modal-tip-text">${p.tip}</div></div>
+<div class="pos-modal-section"><h4>Вариации</h4><div class="pos-modal-variants">${p.variants.map(v=>`<span class="pos-modal-variant">${v}</span>`).join('')}</div></div>`;
+document.getElementById('posModal').classList.add('show');}
+function closePos(){document.getElementById('posModal').classList.remove('show');}
+
+function renderTests(){document.getElementById('testsList').innerHTML=tests.map(t=>`
+<div class="test-card" onclick="startTest('${t.id}')"><div class="test-header">
+<div class="test-icon ${t.icon}">${t.id==='compat'?'💕':t.id==='style'?'🎭':'🔥'}</div>
+<div class="test-info"><div class="test-title">${t.title}</div><div class="test-desc">${t.desc}</div><div class="test-meta">⏱ ${t.time}</div></div></div></div>`).join('');}
+
+function startTest(id){currentTest=tests.find(t=>t.id===id);currentTestIdx=0;testResults=[];renderTestQ();showScreen('testPlayScreen');}
+
+function renderTestQ(){const t=currentTest,q=t.questions[currentTestIdx];
+document.getElementById('testContent').innerHTML=`<div class="test-q">
+<div class="test-q-num">Вопрос ${currentTestIdx+1}/${t.questions.length}</div>
+<div class="test-q-text">${q.q}</div>
+<div class="test-opts">${q.opts.map((o,i)=>`<div class="test-opt" onclick="selTestOpt(${i})">${o}</div>`).join('')}</div></div>`;}
+
+function selTestOpt(i){testResults.push(i);currentTestIdx++;if(currentTestIdx>=currentTest.questions.length)showTestRes();else renderTestQ();}
+
+function showTestRes(){const score=Math.round((testResults.filter(r=>r<2).length/testResults.length)*100);
+let title=score>=80?"Отличная совместимость! 🔥":score>=60?"Хорошая 💕":"Есть над чем работать 💬";
+let desc=score>=80?"Вы отлично понимаете друг друга.":score>=60?"Много общего, есть куда расти.":"Различия — нормально! Главное — диалог.";
+document.getElementById('testContent').innerHTML=`<div class="test-result">
+<div class="test-result-icon">💕</div><div class="test-result-title">${title}</div>
+<div class="test-result-score">${score}%</div><div class="test-result-desc">${desc}</div>
+<button class="spin-btn" onclick="showScreen('testsScreen')" style="margin-top:20px">Готово</button></div>`;}
+
+function renderCalendar(){
+const months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const days=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const fd=new Date(currentYear,currentMonth,1).getDay(),dim=new Date(currentYear,currentMonth+1,0).getDate();
+const today=new Date(),sd=(fd+6)%7;
+let dh='';for(let i=0;i<sd;i++)dh+=`<div class="cal-day other"></div>`;
+for(let d=1;d<=dim;d++){const ds=`${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const e=state.calEntries.find(x=>x.date===ds);
+const it=today.getDate()===d&&today.getMonth()===currentMonth&&today.getFullYear()===currentYear;
+dh+=`<div class="cal-day${it?' today':''}${e?' has-entry':''}" onclick="showDay('${ds}')">${d}</div>`;}
+let eh='';const me=state.calEntries.filter(x=>x.date.startsWith(`${currentYear}-${String(currentMonth+1).padStart(2,'0')}`));
+if(me.length)eh=me.map(e=>`<div class="cal-entry"><div class="cal-entry-header"><div class="cal-entry-date">${e.date.split('-')[2]} ${months[currentMonth]}</div><div class="cal-entry-type">${e.mood}</div></div><div class="cal-entry-content"><b>${e.title}</b>${e.notes?' — '+e.notes:''}</div></div>`).join('');
+document.getElementById('calendarContent').innerHTML=`
+<div class="cal-header"><button class="cal-nav-btn" onclick="chMonth(-1)">←</button><div class="cal-month">${months[currentMonth]} ${currentYear}</div><button class="cal-nav-btn" onclick="chMonth(1)">→</button></div>
+<div class="cal-weekdays">${days.map(d=>`<div class="cal-weekday">${d}</div>`).join('')}</div>
+<div class="cal-days">${dh}</div>${eh}`;}
+
+function chMonth(d){currentMonth+=d;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar();}
+function showDay(d){const e=state.calEntries.find(x=>x.date===d);if(e)showToast(`${e.mood} ${e.title}`);else openCalModal();}
+function openCalModal(){document.getElementById('calModal').classList.add('show');}
+function closeCalModal(){document.getElementById('calModal').classList.remove('show');}
+function selectCalType(t,el){calType=t;document.querySelectorAll('.cal-type-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function selectMood(m,el){calMood=m;document.querySelectorAll('.cal-mood-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function saveCalEntry(){const title=document.getElementById('calTitle').value;if(!title){showToast('Введите название');return;}
+const t=new Date();state.calEntries.push({date:`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`,type:calType,title,notes:document.getElementById('calNotes').value,mood:calMood});
+save();closeCalModal();renderCalendar();showToast('✅ Сохранено!');document.getElementById('calTitle').value='';document.getElementById('calNotes').value='';}
+
+function renderTips(){document.getElementById('tipsList').innerHTML=tips.map(t=>`
+<div class="tip-full"><div class="tip-full-header">
+<div class="tip-full-icon ${t.icon}">${t.icon==='her'?'👩':t.icon==='him'?'👨':'💑'}</div>
+<div><div class="tip-full-cat">${t.cat}</div><div class="tip-full-title">${t.title}</div></div></div>
+<div class="tip-full-content">${t.content}</div>
+<div class="tip-full-steps">${t.steps.map((s,i)=>`<div class="tip-full-step"><div class="tip-full-step-num">${i+1}</div><div>${s}</div></div>`).join('')}</div></div>`).join('');}
+
+function renderIdeas(){document.getElementById('ideasList').innerHTML=ideas.map(c=>`
+<div style="margin-bottom:20px"><h3 style="font-size:15px;margin-bottom:10px">${c.cat}</h3>
+<div style="display:flex;flex-wrap:wrap;gap:8px">${c.items.map(i=>`<div style="padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-size:12px">${i}</div>`).join('')}</div></div>`).join('');}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+if(id==='homeScreen')document.getElementById('navHome').classList.add('active');
+else if(id.includes('question')||id==='qPlayScreen')document.getElementById('navQ').classList.add('active');
+else if(id==='kamaScreen')document.getElementById('navKama').classList.add('active');
+else if(id==='calendarScreen')document.getElementById('navCal').classList.add('active');
+else document.getElementById('navTips').classList.add('active');}
+
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+document.getElementById('posModal').onclick=function(e){if(e.target===this)closePos();};
+</script>
+</body>
+</html>
